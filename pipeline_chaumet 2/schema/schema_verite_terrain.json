@@ -1,0 +1,420 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chaumet.archives/schema_verite_terrain.json",
+  "title": "Fiche de stock AHC — vérité terrain",
+  "description": "Contraint UNIQUEMENT la structure et les types. Aucune règle sur la plausibilité du contenu : les valeurs sont la transcription fidèle de l'archive.",
+  "type": "object",
+  "required": [
+    "metadata",
+    "identification",
+    "dates",
+    "description",
+    "poids_brut_total",
+    "materiaux",
+    "vente",
+    "mentions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optionnel : chemin du schema, si vous declarez la validation dans le fichier lui-meme."
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "cote_archive",
+        "type_fiche",
+        "photographie",
+        "modele",
+        "enrichissements",
+        "tokens_entree",
+        "tokens_sortie"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "cote_archive": {
+          "type": "string",
+          "pattern": "^AHC-[0-9]{7}-[0-9]{4}_[0-9]{3}$",
+          "description": "Identifiant de la vue. Obligatoire, jamais null."
+        },
+        "type_fiche": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Entier, pas une chaîne."
+        },
+        "photographie": {
+          "type": "boolean",
+          "description": "Booléen strict : true / false, jamais null ni \"oui\"."
+        },
+        "modele": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "enrichissements": {
+          "type": "object",
+          "required": [
+            "referentiel_materiaux",
+            "referentiel_abreviations",
+            "index_scripteurs",
+            "few_shot"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "referentiel_materiaux": {
+              "type": "boolean"
+            },
+            "referentiel_abreviations": {
+              "type": "boolean"
+            },
+            "index_scripteurs": {
+              "type": "boolean"
+            },
+            "few_shot": {
+              "type": "boolean"
+            }
+          }
+        },
+        "tokens_entree": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "tokens_sortie": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "tokens_raisonnement": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Tokens de raisonnement produits avant la réponse, facturés au tarif de sortie. Absent des extractions antérieures au correctif d'instrumentation."
+        },
+        "tokens_total": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Total publié par l'API : entrée + sortie + raisonnement. Non requis."
+        }
+      }
+    },
+    "identification": {
+      "type": "object",
+      "required": [
+        "numero_stock",
+        "code_fabrication"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "numero_stock": {
+          "type": "object",
+          "required": [
+            "valeur",
+            "confiance"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "valeur": {
+              "type": [
+                "integer",
+                "string",
+                "null"
+              ],
+              "description": "Entier si le numéro est simple (37944). Chaîne si l'archive porte un suffixe (\"42784/4\")."
+            },
+            "confiance": {
+              "$ref": "#/$defs/confiance"
+            }
+          }
+        },
+        "code_fabrication": {
+          "$ref": "#/$defs/champ_texte"
+        }
+      }
+    },
+    "dates": {
+      "type": "object",
+      "required": [
+        "date_entree_stock",
+        "dates_alternatives"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "date_entree_stock": {
+          "$ref": "#/$defs/champ_date"
+        },
+        "dates_alternatives": {
+          "type": "array",
+          "description": "Tableau, éventuellement vide. Ne reçoit la date manuscrite de l'encart supérieur droit que si elle diffère de la version dactylographiée. Aucune autre date (modification, atelier, inventaire, vente) n'y figure.",
+          "items": {
+            "$ref": "#/$defs/champ_date"
+          }
+        }
+      },
+      "description": "Dates relevant de l'entrée en stock, à l'exclusion de toute autre (voir §3.5)."
+    },
+    "description": {
+      "$ref": "#/$defs/champ_texte"
+    },
+    "poids_brut_total": {
+      "type": "object",
+      "required": [
+        "valeur_brute",
+        "valeur_normalisee",
+        "unite",
+        "confiance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "valeur_brute": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Transcription verbatim : \"3 Grs 60\"."
+        },
+        "valeur_normalisee": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Nombre : 3.6."
+        },
+        "unite": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "confiance": {
+          "$ref": "#/$defs/confiance"
+        }
+      }
+    },
+    "materiaux": {
+      "type": "array",
+      "description": "Tableau, vide [] si aucun matériau lisible — jamais une ligne de null.",
+      "items": {
+        "type": "object",
+        "required": [
+          "libelle",
+          "matiere_normalisee",
+          "date_brute",
+          "date_normalisee",
+          "quantite",
+          "poids",
+          "poids_normalise",
+          "unite",
+          "type",
+          "confiance"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "libelle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Verbatim : \"Pl.\", \"DTS POIRES\"."
+          },
+          "matiere_normalisee": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "date_brute": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "date_normalisee": {
+            "$ref": "#/$defs/date_iso",
+            "description": "Clé sans accent, contrairement à date_normalisée."
+          },
+          "quantite": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "poids": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Verbatim : \"2.-\", \"1,72\"."
+          },
+          "poids_normalise": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unite": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confiance": {
+            "$ref": "#/$defs/confiance"
+          }
+        }
+      }
+    },
+    "vente": {
+      "type": "object",
+      "required": [
+        "client",
+        "date_vente"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "client": {
+          "type": "object",
+          "required": [
+            "valeur",
+            "valeur_normalisee",
+            "confiance"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "valeur": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "valeur_normalisee": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "confiance": {
+              "$ref": "#/$defs/confiance"
+            }
+          }
+        },
+        "date_vente": {
+          "type": "object",
+          "required": [
+            "valeur_brute",
+            "valeur_normalisee",
+            "confiance"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "valeur_brute": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "valeur_normalisee": {
+              "$ref": "#/$defs/date_iso"
+            },
+            "confiance": {
+              "$ref": "#/$defs/confiance"
+            }
+          }
+        }
+      }
+    },
+    "mentions": {
+      "type": "object",
+      "required": [
+        "liste"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "liste": {
+          "type": "array",
+          "description": "Tableau, éventuellement vide. Remplace mention_1..N.",
+          "items": {
+            "$ref": "#/$defs/champ_texte"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "confiance": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "date_iso": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "champ_texte": {
+      "type": "object",
+      "required": [
+        "valeur",
+        "confiance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "valeur": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "confiance": {
+          "$ref": "#/$defs/confiance"
+        }
+      }
+    },
+    "champ_date": {
+      "type": "object",
+      "required": [
+        "valeur_brute",
+        "valeur_normalisee",
+        "confiance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "valeur_brute": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "valeur_normalisee": {
+          "$ref": "#/$defs/date_iso"
+        },
+        "confiance": {
+          "$ref": "#/$defs/confiance"
+        }
+      }
+    }
+  }
+}
